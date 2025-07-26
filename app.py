@@ -1,3 +1,10 @@
+# Movie Recommendation System
+# © 2025 Sneha Talukdar
+# Developed during the ElevateLabs Internship
+# For educational and non-commercial use only
+# Licensed under the Modified MIT License (see LICENSE file for details)
+
+
 import streamlit as st
 import pandas as pd
 

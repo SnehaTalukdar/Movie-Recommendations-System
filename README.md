@@ -64,6 +64,12 @@ http://192.168.29.9:8501 (for accessing from any another device but on the same 
 ## Live App Link (after deployment) :
 [APP ->] 
 
+## Project Report:
+https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/Movie-Recommendations-System_Project-Report_By-Sneha-Talukdar.pdf
+
+## License:
+https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/LICENSE
+
 ## Author:
 Developed by Sneha Talukdar
 B.Tech CSE (AI & ML)

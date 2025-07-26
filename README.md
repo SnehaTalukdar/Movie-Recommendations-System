@@ -62,13 +62,13 @@ http://localhost:8501 (on developer's computer).
 http://192.168.29.9:8501 (for accessing from any another device but on the same network).
 
 ## Live App Link (after deployment) :
-[Movie Recommendation System app ->] (https://movie-recommendations-system-meq6ekbxfda23hszn6luro.streamlit.app/)
+[Movie Recommendation System app->](https://movie-recommendations-system-meq6ekbxfda23hszn6luro.streamlit.app/)
 
 ## Project Report:
-[Project Report PDF ->] (https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/Movie-Recommendations-System_Project-Report_By-Sneha-Talukdar.pdf)
+[Project Report PDF->](https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/Movie-Recommendations-System_Project-Report_By-Sneha-Talukdar.pdf)
 
 ## License:
-[License File -> ] (https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/LICENSE)
+[License File->](https://github.com/SnehaTalukdar/Movie-Recommendations-System/blob/main/LICENSE)
 
 ## Author:
 Developed by Sneha Talukdar

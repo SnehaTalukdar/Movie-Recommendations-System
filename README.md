@@ -73,7 +73,7 @@ http://192.168.29.9:8501 (for accessing from any another device but on the same 
 ## Author:
 Developed by Sneha Talukdar
 B.Tech CSE (AI & ML)
-Kolkata, West Bengal, India
+Kolkata, West Bengal, India.
 
 This is a project of my ElevateLabs Internship, 2025.
 

@@ -1,104 +1,210 @@
 # Movie Recommendation System
 # © 2025 Sneha Talukdar
-# Developed during the ElevateLabs Internship
+# Developed during ElevateLabs Internship
 # For educational and non-commercial use only
 
 import streamlit as st
 import pandas as pd
+import numpy as np
+import warnings
 
-# -------------------- PAGE CONFIG --------------------
-st.set_page_config(page_title="Movie Recommendation System")
+# -------------------- SETTINGS --------------------
+warnings.filterwarnings("ignore")
+
+st.set_page_config(
+    page_title="Movie Recommendation System"
+)
+
+# -------------------- TITLE --------------------
+st.title("🎬 Movie Recommendation System")
+
+st.markdown(
+    "Get top 5 similar movies using collaborative filtering"
+)
 
 # -------------------- LOAD DATA --------------------
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
-    try:
-        ratings = pd.read_csv("data/ratings_small.csv")
-        movies = pd.read_csv("data/movies_metadata.csv", low_memory=False)
 
-        movies['id'] = pd.to_numeric(movies['id'], errors='coerce')
-        merged = pd.merge(ratings, movies, left_on='movieId', right_on='id')
+    # Smaller dataset for speed + stability
+    ratings = pd.read_csv(
+        "data/ratings_small.csv"
+    )
 
-        merged = merged[['userId', 'title', 'rating']].dropna()
-        return merged
+    movies = pd.read_csv(
+        "data/movies_metadata.csv",
+        usecols=["id", "title"],
+        low_memory=False
+    )
 
-    except FileNotFoundError:
-        st.error("Dataset not found! Check file paths.")
-        return pd.DataFrame()
+    # Clean movie IDs
+    movies["id"] = pd.to_numeric(
+        movies["id"],
+        errors="coerce"
+    )
+
+    movies.dropna(
+        subset=["id", "title"],
+        inplace=True
+    )
+
+    # Merge datasets
+    merged = ratings.merge(
+        movies,
+        left_on="movieId",
+        right_on="id"
+    )
+
+    merged = merged[
+        ["userId", "title", "rating"]
+    ].dropna()
+
+    return merged
+
 
 df = load_data()
 
-# -------------------- MAIN APP --------------------
-if not df.empty:
+# -------------------- SAFETY CHECK --------------------
+if df.empty:
+    st.error("Dataset not loaded properly.")
+    st.stop()
 
-    st.title("Movie Recommendation System")
-    st.markdown("Get top 5 similar movies using collaborative filtering")
+# -------------------- FILTER POPULAR MOVIES --------------------
+movie_counts = df["title"].value_counts()
 
-    movie_list = df["title"].dropna().unique()
-    selected_movie = st.selectbox("Choose a movie:", sorted(movie_list))
+popular_movies = movie_counts[
+    movie_counts >= 100
+].index
 
-    # -------------------- USER-MOVIE MATRIX --------------------
-    user_movie_matrix = df.pivot_table(index='userId', columns='title', values='rating')
+df = df[
+    df["title"].isin(popular_movies)
+]
 
-    # -------------------- RECOMMENDATION FUNCTION --------------------
-    def get_similar_movies(movie_title):
+# -------------------- MOVIE LIST --------------------
+movie_list = sorted(
+    df["title"].unique()
+)
 
-        if movie_title not in user_movie_matrix.columns:
-            return pd.DataFrame()
+selected_movie = st.selectbox(
+    "Choose a movie:",
+    movie_list
+)
 
-        target_ratings = user_movie_matrix[movie_title]
+# -------------------- USER-MOVIE MATRIX --------------------
+@st.cache_data(show_spinner=False)
+def create_matrix(data):
 
-        # Correlation-based similarity
-        similar_movies = user_movie_matrix.corrwith(target_ratings)
+    matrix = data.pivot_table(
+        index="userId",
+        columns="title",
+        values="rating"
+    )
 
-        corr_df = pd.DataFrame(similar_movies, columns=["Correlation"])
-        corr_df = corr_df.dropna()
+    return matrix
 
-        # Count ratings per movie
-        rating_counts = df.groupby("title")["rating"].count()
-        corr_df["rating_count"] = rating_counts
 
-        # -------------------- FIXES --------------------
-        # 1. Ensure enough data support
-        filtered = corr_df[corr_df["rating_count"] >= 50]
+user_movie_matrix = create_matrix(df)
 
-        # 2. Remove fake perfect similarity
-        filtered = filtered[filtered["Correlation"] < 0.9999]
+# -------------------- RECOMMENDATION FUNCTION --------------------
+def get_similar_movies(movie_title):
 
-        # 3. Remove negative/noisy correlations
-        filtered = filtered[filtered["Correlation"] > 0]
+    if movie_title not in user_movie_matrix.columns:
+        return pd.DataFrame()
 
-        # Sort results
-        return filtered.sort_values("Correlation", ascending=False).head(5)
+    target_ratings = user_movie_matrix[
+        movie_title
+    ]
 
-    # -------------------- UI ACTION --------------------
-    if st.button("Recommend Similar Movies"):
+    # Pearson Correlation Similarity
+    similar_movies = user_movie_matrix.corrwith(
+        target_ratings
+    )
 
-        recommendations = get_similar_movies(selected_movie)
+    corr_df = pd.DataFrame(
+        similar_movies,
+        columns=["Similarity"]
+    )
 
-        if not recommendations.empty:
+    # Remove invalid values
+    corr_df.replace(
+        [np.inf, -np.inf],
+        np.nan,
+        inplace=True
+    )
 
-            st.subheader("Top 5 Similar Movies with Scores:")
+    corr_df.dropna(inplace=True)
 
-            recommendations = recommendations.reset_index()
+    # Count ratings
+    rating_counts = df.groupby(
+        "title"
+    )["rating"].count()
 
-            for _, row in recommendations.iterrows():
-                st.write(
-                    f"{row['title']} → Similarity Score: {round(row['Correlation'], 3)}"
-                )
+    corr_df["rating_count"] = rating_counts
 
-        else:
-            st.warning("No similar movies found. Try another movie.")
+    # -------------------- FILTERS --------------------
 
-else:
-    st.warning("Dataset not loaded. Please check file paths.")
+    # Keep movies with enough ratings
+    filtered = corr_df[
+        corr_df["rating_count"] >= 100
+    ]
+
+    # Remove self similarity
+    filtered = filtered[
+        filtered["Similarity"] < 0.999
+    ]
+
+    # Remove negative similarity
+    filtered = filtered[
+        filtered["Similarity"] > 0
+    ]
+
+    # Remove suspicious near-perfect matches
+    filtered = filtered[
+        filtered["Similarity"] < 0.95
+    ]
+
+    # Sort recommendations
+    recommendations = filtered.sort_values(
+        "Similarity",
+        ascending=False
+    ).head(5)
+
+    return recommendations
+
+# -------------------- BUTTON --------------------
+if st.button("Recommend Similar Movies"):
+
+    recommendations = get_similar_movies(
+        selected_movie
+    )
+
+    st.subheader("⭐ Top Similar Movies")
+
+    if not recommendations.empty:
+
+        recommendations = recommendations.reset_index()
+
+        for _, row in recommendations.iterrows():
+
+            st.write(
+                f"🎬 {row['title']} → Similarity Score: {round(row['Similarity'], 3)}"
+            )
+
+    else:
+
+        st.warning(
+            "No similar movies found. Try another movie."
+        )
 
 # -------------------- FOOTER --------------------
 st.markdown("---")
+
 st.markdown(
-    "<div style='text-align: center; font-size: 14px;'>"
-    "Developed by <b>Sneha Talukdar</b> during ElevateLabs Internship, 2025<br>"
-    "For educational and non-commercial use only."
-    "</div>",
+    """
+    <div style='text-align: center; font-size: 14px;'>
+    Developed by <b>Sneha Talukdar</b> during ElevateLabs Internship, 2025<br>
+    For educational and non-commercial use only.
+    </div>
+    """,
     unsafe_allow_html=True
 )

@@ -17,18 +17,6 @@ This is a personalized movie recommendation system that uses collaborative filte
 
 
 
-##  Screenshots :
-
-###  Home Screen -> ![Home Page](screenshot_home.png)
-
-###  Movie Selected -> ![Selected Movie](screenshot_movie-selected.png)
-
-###  Recommendations Displayed -> ![Recommended Movies](screenshot_movie-recommendations.png)
-
-###  Footer with Developer Credits -> ![Footer Page](screenshot_footer.png)
-
-
-
 ## Overview of the project :
 
 I created this movie recommendation system project as part of my 2025 ElevateLabs internship.  

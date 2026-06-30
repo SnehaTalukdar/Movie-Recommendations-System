@@ -15,20 +15,6 @@ This is a personalized movie recommendation system that uses collaborative filte
 -> It is completely tested and operational.
 
 
-## Screenshots :
-
-### Home Screen
-![Home Page](screenshot_home.png)
-
-### Movie Selected
-![Selected Movie](screenshot_movie-selected.png)
-
-### Recommendations Displayed
-![Recommended Movies](screenshot_similar%20movies-with-similarity_scores.png)
-
-### Footer with Developer Credits
-![Footer Page](screenshot_footer.png)
-
 
 ## Overview of the project :
 
